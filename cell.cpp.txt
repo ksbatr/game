@@ -1,0 +1,11 @@
+#include "cell.h"
+
+cell::cell(bool b, int val) {
+    this->used = b;
+    this->val = val;
+}
+
+cell::cell() {
+    this->used = false;
+    this->val = 0;
+}

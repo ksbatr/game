@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <iostream>
+#include "cell.h"
+
+using namespace std;
+
+class Solver {
+private:
+    int **table;
+
+    cell **line;
+    cell **col;
+    int *val_lines;
+    int *val_columns;
+    int nb_lines;
+    int nb_columns;
+    int *val_possibles;
+    int nb_val_possibles;
+public:
+    void generer(int nbL, int nbC);
+
+    Solver(int *val_lines, int *val_columns, int *val_possibles, int 
+nb_lines, int nb_columns,
+           int nb_val_possibles);
+
+    Solver(const Solver &a);
+
+    Solver();
+
+    void print_table(); // создаём поле игры
+
+    int sumLine(int i); // сумма строчки
+
+    int sumColumn(int i); // сумма столбца
+
+    bool end_of_game(); // проверка равенства суммы линии/столбца с введённой суммой
+
+    void solve(); // вывод
+
+    bool choose(int x, int y, bool opti); //
+
+    int *possible_choice(int cpt, int i, int j); //
+
+    void delete_choice(int x, int i, int j); //
+
+    void forward_checking(Solver k, int i, int j); //
+};

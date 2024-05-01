@@ -1,0 +1,231 @@
+#include "Solver.h"
+#include <iomanip>
+#include <math.h>
+
+Solver::Solver() {}
+
+Solver::Solver(int *val_lines, int *val_columns, int *val_possibles, int 
+nb_lines, int nb_columns,
+               int nb_val_possibles) {
+    //обращаемся к переменным
+    this->val_lines = val_lines;
+    this->val_columns = val_columns;
+    this->nb_lines = nb_lines;
+    this->nb_columns = nb_columns;
+    this->val_possibles = val_possibles;
+    this->nb_val_possibles = nb_val_possibles;
+    table = new int *[nb_lines];
+    for (int i = 0; i < nb_lines; i++) {
+        table[i] = new int[nb_columns];
+        for (int j = 0; j < nb_columns; j++) {
+            table[i][j] = 0;
+        }
+    }
+    line = new cell *[nb_lines];
+    col = new cell *[nb_columns];
+    for (int i = 0; i < nb_lines; i++) {
+        line[i] = new cell[nb_val_possibles];
+        for (int j = 0; j < nb_val_possibles; j++) {
+            line[i][j] = *new cell(false, val_possibles[j]);
+        }
+    }
+    for (int i = 0; i < nb_columns; i++) {
+        col[i] = new cell[nb_val_possibles];
+        for (int j = 0; j < nb_val_possibles; j++) {
+            col[i][j] = *new cell(false, val_possibles[j]);
+        }
+    }
+}
+
+Solver::Solver(const Solver &a) {
+
+    this->nb_lines = a.nb_lines;
+    this->nb_columns = a.nb_columns;
+    this->val_possibles = a.val_possibles;
+    this->nb_val_possibles = a.nb_val_possibles;
+    this->val_lines = new int[nb_lines];
+
+    for (int i = 0; i < nb_lines; i++) {
+        this->val_lines[i] = a.val_lines[i];
+    }
+    this->val_columns = new int[nb_columns];
+    for (int i = 0; i < nb_columns; i++) {
+        this->val_columns[i] = a.val_columns[i];
+    }
+    this->table = new int *[this->nb_lines];
+    for (int i = 0; i < nb_lines; i++) {
+        this->table[i] = new int[nb_columns];
+        for (int j = 0; j < nb_columns; j++) {
+            this->table[i][j] = a.table[i][j];
+        }
+    }
+    this->line = new cell *[nb_lines];
+    this->col = new cell *[nb_columns];
+    for (int i = 0; i < nb_lines; i++) {
+        this->line[i] = new cell[nb_val_possibles];
+        for (int j = 0; j < nb_val_possibles; j++) {
+            this->line[i][j].val = a.line[i][j].val;
+            this->line[i][j].used = a.line[i][j].used;
+        }
+    }
+    for (int i = 0; i < nb_columns; i++) {
+        this->col[i] = new cell[nb_val_possibles];
+        for (int j = 0; j < nb_val_possibles; j++) {
+            this->col[i][j].val = a.col[i][j].val;
+            this->col[i][j].used = a.col[i][j].used;
+        }
+    }
+}
+
+void Solver::print_table() { // вывод таблицы
+    int max = 0;
+    int min = 7;
+    for (int i = 0; i < nb_lines; i++) {
+        if (val_lines[i] > max) max = val_lines[i];
+    }
+    for (int i = 0; i < nb_columns; i++) {
+        if (val_columns[i] > max) max = val_columns[i];
+    }
+    int nb = max/10; //(log10(max) + 1);
+    if (nb < min) nb = min; //((nb + 2) < min) nb = min;
+    cout << setw(nb) << "\n" << setw(nb) << " ";
+    for (int i = 0; i < nb_columns; i++) {
+        cout << setw(nb) << val_columns[i];
+        cout << setw(nb) << " ";
+    }
+    cout << endl;
+    for (int i = 0; i < (nb * ((nb_columns * 2) + 1)) - 1; i++) {
+        if (i < nb) cout << " ";
+        else cout << "-";
+    }
+    cout << endl;
+    for (int i = 0; i < nb_lines; i++) {
+        cout << setw(nb - 2) << val_lines[i];
+        cout << " |";
+        for (int j = 0; j < nb_columns; j++) {
+            cout << setw(nb) << table[i][j];
+            if (j != nb_columns - 1) cout << setw(nb) << "|";
+            else cout << setw(nb) << "|";
+        }
+        cout << '\n';
+        for (int i = 0; i < (nb * ((nb_columns * 2) + 1)) - 1; i++) {
+            if (i < nb) cout << " ";
+            else cout << "-";
+        }
+        cout << endl;
+    }
+    for (int i = 0; i < nb_columns; i++) {
+        cout << setw(nb) << " ";
+    }
+    cout << "\n\n";
+
+}
+
+int Solver::sumColumn(int i) { // сумма столбцов
+    int sum = 0;
+    for (int j = 0; j < nb_lines; j++) {
+        sum += table[j][i];
+    }
+    return sum;
+}
+
+int Solver::sumLine(int i) { // сумма строк
+    int sum = 0;
+    for (int j = 0; j < nb_columns; j++) {
+        sum += table[i][j];
+    }
+    return sum;
+}
+
+bool Solver::end_of_game() {
+    for (int i = 0; i < nb_lines; i++) {
+        if (sumLine(i) != val_lines[i]) return false;
+    }
+    for (int i = 0; i < nb_columns; i++) {
+        if (sumColumn(i) != val_columns[i]) return false;
+    }
+    return true;
+}
+
+bool Solver::choose(int x, int y, bool opti) { // выбор
+    int size = 9;
+    if (size != 0) {
+        int rnd = rand() % (size);
+        srand(time(NULL));
+        int *tab = possible_choice(size, x, y);
+        table[x][y] = tab[rnd];
+        delete_choice(tab[rnd], x, y);
+        if (opti) {
+            if ((sumLine(x) > val_lines[x] || sumColumn(y) > val_columns[y]) || ((y == nb_columns - 1) && sumLine(x) != val_lines[x]) || ((x == nb_lines - 1) && sumColumn(y) != val_columns[y]))
+                return false;
+        }
+    } else return false;
+    return true;
+}
+
+int *Solver::possible_choice(int cpt, int i, int j) { // выбор из возможных значений
+    int *tab = NULL;
+    if (cpt != 0) {
+        tab = new int[cpt];
+        cpt = 0;
+        for (int x = 0; x < 9; x++) {
+            if (line[i][x].used==0) {
+                for (int z = 0; z < 9; z++) {
+                    if (col[j][z].used==0) {
+                        if (line[i][x].val == col[j][z].val) {
+                            tab[cpt] = line[i][x].val;
+                            cpt++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return tab;
+}
+
+void Solver::delete_choice(int x, int i, int j)     { // удаление
+    for (int z = 0; z < 9; z++)  {
+        if (line[i][z].val == x)   {
+            line[i][z].used = true;
+        }
+    }
+    for (int z = 0; z < 9; z++)  {
+        if (col[j][z].val == x)     {
+            col[j][z].used = true;
+        }
+    }
+}
+
+void Solver::forward_checking(Solver k, int i, int j) { // предварительная проверка
+        int size = 9; 
+        int *tab = k.possible_choice(size, i, j);
+        if (size != 0) {
+            for (int x = 0; x < size; x++) {
+                Solver g = k;
+                g.table[i][j] = tab[x];
+                g.delete_choice(tab[x], i, j);
+                if ((g.sumLine(i) > g.val_lines[i] || g.sumColumn(j) > g.val_columns[j])) break;
+                else {
+                    if (i == nb_lines - 1 && j == nb_columns - 1) {
+                        if (g.end_of_game()) {
+                            g.print_table();
+                        }
+                    }
+                    else {
+                        if (j == (g.nb_columns - 1) && i < g.nb_lines - 1) {
+                            if (g.sumLine(i) != g.val_lines[i]);
+                            else forward_checking(g, i + 1, 0);
+                        } else {
+                            if (((i == g.nb_lines - 1) && (g.sumColumn(j) != g.val_columns[j])));
+                            else forward_checking(g, i, j + 1);
+                        }
+                    }
+                }
+            }
+        }
+}
+
+void Solver::solve() {
+    forward_checking(*this, 0, 0);
+}

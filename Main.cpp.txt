@@ -1,0 +1,46 @@
+#include "Solver.h"
+
+int main() {
+    int num_lines = 0, num_columns = 0, num_valeurs_possible = 9;
+    Solver *s = new Solver();
+    cout << "number of lines: ";
+    cin >> num_lines;
+    cout << "number of columns: ";
+    cin >> num_columns;
+          int* val_line = new int[num_lines];
+            int* val_column = new int[num_columns];
+            int* val_possible = new int[num_valeurs_possible];
+            cout << endl;
+            cout << "The values to be reached in the lines: " << endl;
+
+            for (int i = 0; i < num_lines; i++) {
+                cout << "\tLine amount[" << i << "] = ";
+                cin >> val_line[i];
+            }
+            cout << endl;
+
+            cout << "The values to be reached in the Columns: " << endl;
+            for (int i = 0; i < num_columns; i++) {
+                cout << "\tThe Sum of the Column[" << i << "] = ";
+                cin >> val_column[i];
+            }
+            cout << endl;
+
+            for (int i = 1; i <= num_valeurs_possible; i++) {
+                val_possible[i - 1] = i;
+            }
+            cout << "List of possible values: [ ";
+            for (int i = 0; i < num_valeurs_possible; i++) {
+                if (i != (num_valeurs_possible - 1)) cout << val_possible[i] << " , ";
+                else cout << val_possible[i] << " ]" << endl << endl;
+            }
+
+            *s = Solver(val_line, val_column, val_possible, num_lines, 
+num_columns, num_valeurs_possible);
+            s->print_table();
+            cout << "Solved task:\n";
+            s->solve();
+    return 0;
+
+}
+

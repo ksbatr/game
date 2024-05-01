@@ -1,0 +1,12 @@
+#ifndef KAKUROGAME_CASE_H
+
+class cell {
+public:
+    bool used;
+    int val;
+
+    cell(bool b, int val);
+    cell();
+};
+
+#endif
